@@ -8,6 +8,15 @@ import re
 import os
 import keyboard
 import time
+import ssl
+try:
+    _create_unverified_https_context = ssl._create_unverified_context
+except AttributeError:
+    # Legacy Python that doesn't verify HTTPS certificates by default
+    pass
+else:
+    # Handle target environment that doesn't support HTTPS verification
+    ssl._create_default_https_context = _create_unverified_https_context
 fnop=0
 br = mechanize.Browser()
 br.set_handle_robots(False)
@@ -163,12 +172,12 @@ def epld():
     global gepl
     resp2=br.open(gepl)
     o=resp2.read()
-    a=o.split('onclick="window.open(')
+    a=o.split('"tooltip" href="')
     b=a[1]
-    c=b.split(",")
+    c=b.split('"')
     d=c[0]
-    e=d[1:len(d)-1]
-    f="https://otakustream.tv"+e
+    e=d[1:len(d)]
+    f="https://otakustream.tv/"+e
     print "Downloading from --"+f
     return f
 try:
