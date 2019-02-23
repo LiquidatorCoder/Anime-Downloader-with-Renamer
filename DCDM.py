@@ -75,7 +75,7 @@ def renamer():
     nfilename="Episode "+filenamewoq[0:3]+" "+eno7+".mp4"
 def downloader(url):
     global filenamewq,filenamewoq
-    r = requests.get(url,stream=True,allow_redirects=True)
+    r = requests.get(url, stream=True,allow_redirects=True)
     filenamewq = getfnm(r.headers.get('content-disposition'))
     filenamewoq = filenamewq[1:len(filenamewq)-1:1]
     renamer()
@@ -86,15 +86,20 @@ def downloader(url):
         print "Downloading\n",nfilename
         with open(nfilename, 'wb') as f:
             total_length = int(r.headers.get('content-length'))
-            for chunk in progress.bar(r.iter_content(chunk_size=64), expected_size=(total_length/64) + 1):
-                if keyboard.is_pressed('esc'):
+            for chunk in progress.bar(r.iter_content(chunk_size=1024), expected_size=(total_length/1024) + 1):
+                try:
+                    if keyboard.is_pressed('esc'):
+                        f.close()
+                        os.rename(nfilename,nfilename+".part")
+                        break
+                    elif chunk:
+                        f.write(chunk)
+                        f.flush()
+                except KeyboardInterrupt:
                     f.close()
                     os.rename(nfilename,nfilename+".part")
                     break
-                elif chunk:
-                    f.write(chunk)
-                    f.flush()
-            f.close()           
+            
 def eplc():
     global gepl
     l=gepl.split("/")
@@ -107,12 +112,12 @@ def epld():
     global gepl
     resp2=br.open(gepl)
     o=resp2.read()
-    a=o.split('onclick="window.open(')
+    a=o.split('"tooltip" href="')
     b=a[1]
-    c=b.split(",")
+    c=b.split('"')
     d=c[0]
-    e=d[1:len(d)-1]
-    f="https://otakustream.tv"+e
+    e=d[1:len(d)]
+    f="https://otakustream.tv/"+e
     print "Downloading from --"+f
     return f
 try:
@@ -121,7 +126,6 @@ try:
     login()
     gepl=fetchl()
     print "Starting Download"
-    print time.asctime()
     while True:
         if gepl!=None:
             g=epld()
